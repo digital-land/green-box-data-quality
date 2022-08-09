@@ -1,6 +1,12 @@
 collection_name: "listed-building"
 dataset_path_name: "/src/sharing_area/green-box-data-quality/unit_tests/testing_dataset/lb_single_res.sqlite3"
 tables:
+        - tb_name: "column_field"
+          tb_expected_min_row_count: 4000
+          tb_expected_max_row_count: 5000
+        - tb_name: "dataset_resource"
+          tb_expected_min_row_count: 4000
+          tb_expected_max_row_count: 5000
         - tb_name: "fact"
           tb_expected_min_row_count: 4000
           tb_expected_max_row_count: 5000

@@ -26,8 +26,7 @@ def test_query_runner():
 def test_config_parser():
     file_path = "/src/sharing_area/green-box-data-quality/unit_tests/testing_config_dq_suite.yaml"    
     result = config_parser(file_path)    
-    print(result)
-    
+        
     expected_dictionary = {
     'collection_name': 'listed-building', 
     'dataset_path_name': '/src/sharing_area/green-box-data-quality/unit_tests/testing_dataset/lb_single_res.sqlite3', 

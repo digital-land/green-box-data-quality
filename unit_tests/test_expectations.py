@@ -1,7 +1,5 @@
 from xmlrpc.client import TRANSPORT_ERROR
-import pytest
 import pandas as pd
-import spatialite
 from expectations import *
 
 # Shared testing resources
@@ -403,4 +401,102 @@ def test_check_geo_shapes_are_valid_False():
     assert response.result == False    
     assert response.msg == "Fail: invalid shapes found in field 'geometry' on table 'one_invalid_among_five', see details"
     assert response.details == {'invalid_shapes': [{'entity': 303443, 'is_valid': 0}]}
-                  
+
+
+def test_check_json_values_for_key_within_expected_set_True():   
+    "Test case where all values found are within expected"
+    table_name = "entity"
+    field_name = "json"
+    json_key = "listed-building-grade"
+    ref_fields = ["entity"]
+
+    expected_values_set = {"I","II","III","II*"}
+
+    check_json_values_within_expected_set = CheckJsonValuesForKeyAreWithinExpectedSet(query_runner=query_runner)
+    response = check_json_values_within_expected_set.check(table_name, field_name,json_key,expected_values_set,ref_fields)
+    
+    assert response.result == True
+    assert response.msg == "Success: data quality as expected"
+    assert response.details == None
+
+def test_check_json_values_for_key_within_expected_set_True():   
+    "Test case where II* is not expected but found"
+    table_name = "entity"
+    field_name = "json"
+    json_key = "listed-building-grade"
+    ref_fields = ["entity"]
+
+    expected_values_set = {"I","II","III"}
+
+    check_json_values_within_expected_set = CheckJsonValuesForKeyAreWithinExpectedSet(query_runner=query_runner)
+    response = check_json_values_within_expected_set.check(table_name, field_name,json_key,expected_values_set,ref_fields)
+    
+    assert response.result == False
+    assert response.msg == "Fail: found non-expected values for key 'listed-building-grade' in field 'json' on table 'entity', see details"    
+    assert response.details == {'non_expected_values': [
+        {'entity': 42114490, 'value_found_for_key': 'II*'}, {'entity': 42114499, 'value_found_for_key': 'II*'}, {'entity': 42114503, 'value_found_for_key': 'II*'}, 
+        {'entity': 42114516, 'value_found_for_key': 'II*'}, {'entity': 42114519, 'value_found_for_key': 'II*'}, {'entity': 42114521, 'value_found_for_key': 'II*'}, 
+        {'entity': 42114530, 'value_found_for_key': 'II*'}, {'entity': 42114537, 'value_found_for_key': 'II*'}, {'entity': 42114552, 'value_found_for_key': 'II*'}, 
+        {'entity': 42114582, 'value_found_for_key': 'II*'}, {'entity': 42114583, 'value_found_for_key': 'II*'}, {'entity': 42114599, 'value_found_for_key': 'II*'}, 
+        {'entity': 42114605, 'value_found_for_key': 'II*'}, {'entity': 42114612, 'value_found_for_key': 'II*'}, {'entity': 42114644, 'value_found_for_key': 'II*'}, 
+        {'entity': 42114645, 'value_found_for_key': 'II*'}, {'entity': 42114646, 'value_found_for_key': 'II*'}, {'entity': 42114648, 'value_found_for_key': 'II*'}, 
+        {'entity': 42114652, 'value_found_for_key': 'II*'}, {'entity': 42114653, 'value_found_for_key': 'II*'}, {'entity': 42114655, 'value_found_for_key': 'II*'}, 
+        {'entity': 42114669, 'value_found_for_key': 'II*'}, {'entity': 42114676, 'value_found_for_key': 'II*'}, {'entity': 42114677, 'value_found_for_key': 'II*'},
+         {'entity': 42114678, 'value_found_for_key': 'II*'}, {'entity': 42114688, 'value_found_for_key': 'II*'}, {'entity': 42114699, 'value_found_for_key': 'II*'}, 
+         {'entity': 42114707, 'value_found_for_key': 'II*'}, {'entity': 42114711, 'value_found_for_key': 'II*'}, {'entity': 42114712, 'value_found_for_key': 'II*'}, 
+         {'entity': 42114722, 'value_found_for_key': 'II*'}, {'entity': 42114725, 'value_found_for_key': 'II*'}, {'entity': 42114742, 'value_found_for_key': 'II*'}, 
+         {'entity': 42114776, 'value_found_for_key': 'II*'}, {'entity': 42114790, 'value_found_for_key': 'II*'}, {'entity': 42114802, 'value_found_for_key': 'II*'}, 
+         {'entity': 42114824, 'value_found_for_key': 'II*'}, {'entity': 42114843, 'value_found_for_key': 'II*'}, {'entity': 42114854, 'value_found_for_key': 'II*'}, 
+         {'entity': 42114856, 'value_found_for_key': 'II*'}, {'entity': 42114869, 'value_found_for_key': 'II*'}, {'entity': 42114871, 'value_found_for_key': 'II*'}, 
+         {'entity': 42114880, 'value_found_for_key': 'II*'}, {'entity': 42114881, 'value_found_for_key': 'II*'}, {'entity': 42114883, 'value_found_for_key': 'II*'}, 
+         {'entity': 42114913, 'value_found_for_key': 'II*'}, {'entity': 42114917, 'value_found_for_key': 'II*'}, {'entity': 42114922, 'value_found_for_key': 'II*'}, 
+         {'entity': 42114940, 'value_found_for_key': 'II*'}]}
+
+def test_check_json_values_for__not_found_key_False():   
+    "Test case where all key is not found"
+    table_name = "entity"
+    field_name = "json"
+    json_key = "not-present-key"
+    ref_fields = ["entity"]
+
+    expected_values_set = {"I","II","III","II*"}
+
+    check_json_values_within_expected_set = CheckJsonValuesForKeyAreWithinExpectedSet(query_runner=query_runner)
+    response = check_json_values_within_expected_set.check(table_name, field_name,json_key,expected_values_set,ref_fields)
+    
+    assert response.result == False
+    assert response.msg == "Fail: found non-expected values for key 'not-present-key' in field 'json' on table 'entity', see details"
+    # because in this case the details will bring to many rows we decided not to assert details content
+
+
+def test_check_json_keys_are_within_Expected_keys_set_True():   
+    "Test case where all keys found are within the expected set"
+    table_name = "entity"
+    field_name = "json"    
+    ref_fields = ["entity"]
+    expected_key_set ={"listed-building-grade", "documentation-url" , "description" , "notes"}
+    
+
+    check_json_values_within_expected_set = CheckJsonKeysAreWithinExpectedSetOfKeys(query_runner=query_runner)
+    response = check_json_values_within_expected_set.check(table_name,field_name,expected_key_set,ref_fields)
+    
+    assert response.result == True
+    assert response.msg == "Success: data quality as expected"
+    assert response.details == None
+
+def test_check_json_keys_are_within_Expected_keys_set_False():   
+    "Test case where a non-expected key is found, because we are not including 'notes' in the expected set"
+    table_name = "entity"
+    field_name = "json"    
+    ref_fields = ["entity"]
+    expected_key_set ={"listed-building-grade", "documentation-url" , "description" }
+    
+
+    check_json_values_within_expected_set = CheckJsonKeysAreWithinExpectedSetOfKeys(query_runner=query_runner)
+    response = check_json_values_within_expected_set.check(table_name,field_name,expected_key_set,ref_fields)
+    
+    print(response.msg)
+
+    assert response.result == False
+    assert response.msg == "Fail: found non-expected json keys in the field 'json' on table 'entity', see details"
+    # because in this case the details will bring ~450 rows we decided not to assert details content

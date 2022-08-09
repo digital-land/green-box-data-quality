@@ -209,4 +209,87 @@ class CheckGeoShapesAreValid(Expectation):
             expectation_response.details = {"invalid_shapes": invalid_shapes.to_dict(orient='records')}
         
         return expectation_response
-       
+
+class CheckJsonKeysAreWithinExpectedSetOfKeys(Expectation):
+    """Receives a table name, a field name (of a field that has a JSON text 
+    stored in it) and a set of keys. It checks if the keys found in the JSON 
+    are within the expected set of expected keys. 
+    One sided: will not check if all expected keys are found, only if all 
+    found are within the expected
+    """ 
+    def check(self, table_name: str, field_name: str, expected_keys_set: set, ref_fields:list):
+        
+        expectation_response = ExpectationResponse(expectation_input=locals())        
+
+        str_ref_fields = ",".join(ref_fields)  
+        
+        prep_key_set = [f"'$.{s}'" for s in expected_keys_set]
+        str_expected_keys_set = ",".join(prep_key_set)
+
+        print(str_expected_keys_set)
+
+        sql_query =f"""
+            SELECT {str_ref_fields},json_remove({field_name}, {str_expected_keys_set}) AS non_expected_keys 
+            FROM {table_name} 
+            WHERE 
+                json_remove({field_name}, {str_expected_keys_set}) !=""" + "'{}'" +f" OR json_remove({field_name}, {str_expected_keys_set}) IS NULL;"
+        
+        non_expected_keys = self.query_runner.run_query(sql_query)
+
+        expectation_response.result = (len(non_expected_keys) == 0)
+        if expectation_response.result:
+            expectation_response.msg = "Success: data quality as expected"
+            expectation_response.details = None
+        else:
+            expectation_response.msg = f"Fail: found non-expected json keys in the field '{field_name}' on table '{table_name}', see details"
+            expectation_response.details = {"records_with_non_expected_keys": non_expected_keys.to_dict(orient='records') }
+
+        return expectation_response
+    
+class CheckJsonValuesForKeyAreWithinExpectedSet(Expectation):
+    """Receives:
+        - table name, 
+        - a field (with a JSON text in it), 
+        - a json key (that for which the value will be looked)
+        - one or more ref columns in a list,
+        - a set expected values.
+    It returns True if both conditions are met:
+        - the key was found for all rows
+        - the value stored for the key was within expected set
+    If any is not met it returns False.
+    One-sided: will not check if all expected values are found, only if all 
+    found values are within the expected
+    """ 
+    def check(self, table_name: str, field:str, json_key: str, expected_values_set: set, ref_fields:list):
+
+        expectation_response = ExpectationResponse(expectation_input=locals())        
+        
+        str_ref_fields = ",".join(ref_fields)  
+        str_expected_values_set = "','".join(expected_values_set)
+
+        sql_query =f"""
+            SELECT {str_ref_fields},json_extract({field}, '$.{json_key}') AS value_found_for_key 
+            FROM {table_name} 
+            WHERE 
+                (json_extract({field}, '$.{json_key}') NOT IN ('{str_expected_values_set}'))
+                OR (json_extract({field}, '$.{json_key}')) IS NULL;"""
+
+        non_expected_values = self.query_runner.run_query(sql_query)
+        
+        expectation_response.result = (len(non_expected_values) == 0)
+
+        if expectation_response.result:
+            expectation_response.msg = "Success: data quality as expected"
+            expectation_response.details = None
+        else:
+            expectation_response.msg = f"Fail: found non-expected values for key '{json_key}' in field '{field}' on table '{table_name}', see details"
+            expectation_response.details = {"non_expected_values": non_expected_values.to_dict(orient='records') }
+
+        return expectation_response
+
+class CheckValueInFieldIsWithinExpectedRange(Expectation):
+    """Receives a table name, a field name checks the values found in the field
+    are within the expected range
+    """ 
+    def check(self, table_name: str, field_name: str, min_expected_value: int, max_expected_value: int):
+        NotImplemented
