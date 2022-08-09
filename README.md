@@ -6,7 +6,8 @@ It's development environment was a docker container with the setup exactly as de
 https://github.com/digital-land/digital-land-docker-pipeline-runner
 
 The unit tests expect the tool to be running from the following dir inside the container:
-/src/sharing_area/green-box-data-quality/
+    
+    /src/sharing_area/green-box-data-quality/
 
 To make it easier to run the unit tests we suggest:
 
