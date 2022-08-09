@@ -22,20 +22,3 @@ print(f"response.result = {response.result}")
 print(f"response.msg = {response.msg}")
 print(f"response.details = {response.details}")
 print(f"response.expectation_input = {response.expectation_input}")
-
-
-
-#   For each expectation checked: 
-#       - treat responses and severity according to use-case 
-#       - output in a compatible way with pipelines issue logs
-
-# TEST entity numbers are within RANGE
-
-# check all entity table columns + json element should be == to datset in spec (many won't have all of dataset, 
-# should not find fields in the json that are not in the dataset spec)
-
-# check inside a json stored as a field if any fields in the json field of the entity table are not listed in the dataset fields
-
-# check value inside nested field is in one of the sets
-
-# CLI
