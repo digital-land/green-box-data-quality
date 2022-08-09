@@ -11,7 +11,7 @@ def test_transform_first_col_into_set():
     assert expected_set == transform_df_first_column_into_set(df)
 
 def test_query_runner():
-    tested_dataset = "/src/sharing_area/green-box-data-quality/unit_tests/testing_dataset/lb_single_res.sqlite3"
+    tested_dataset = "unit_tests/testing_dataset/lb_single_res.sqlite3"
     query_runner = QueryRunner(tested_dataset)
     sql_query ="SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;"
     result = query_runner.run_query(sql_query)    
@@ -24,12 +24,12 @@ def test_query_runner():
     pd.testing.assert_frame_equal(result,expected_result)
 
 def test_config_parser():
-    file_path = "/src/sharing_area/green-box-data-quality/unit_tests/testing_config_dq_suite.yaml"    
+    file_path = "unit_tests/testing_config_dq_suite.yaml"    
     result = config_parser(file_path)    
         
     expected_dictionary = {
     'collection_name': 'listed-building', 
-    'dataset_path_name': '/src/sharing_area/green-box-data-quality/unit_tests/testing_dataset/lb_single_res.sqlite3', 
+    'dataset_path_name': 'unit_tests/testing_dataset/lb_single_res.sqlite3', 
     'tables': [
         {'tb_name': 'fact', 
         'tb_expected_min_row_count': 4000, 

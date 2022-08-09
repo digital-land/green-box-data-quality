@@ -3,7 +3,7 @@ import pandas as pd
 from expectations import *
 
 # Shared testing resources
-tested_dataset = "/src/sharing_area/green-box-data-quality/unit_tests/testing_dataset/lb_single_res.sqlite3"
+tested_dataset = "unit_tests/testing_dataset/lb_single_res.sqlite3"
 query_runner = QueryRunner(tested_dataset)
 
 def test_check_database_has_expected_tables_Success():
@@ -369,7 +369,7 @@ def test_check_uniqueness_field_set_of_fields_False():
 def test_check_geo_shapes_are_valid_True():   
     """ Tests with five valid geo shapes, should return True.
     """
-    tested_dataset = "/src/sharing_area/green-box-data-quality/unit_tests/testing_dataset/five_valid_multipolygons.sqlite3"    
+    tested_dataset = "unit_tests/testing_dataset/five_valid_multipolygons.sqlite3"    
     query_runner = QueryRunner(tested_dataset)
     
     table_name = "five_valid_multipolygons"
@@ -386,7 +386,7 @@ def test_check_geo_shapes_are_valid_True():
 def test_check_geo_shapes_are_valid_False():   
     """ Tests with one geo shape that is invalid in a table with 5.
     """
-    tested_dataset = "/src/sharing_area/green-box-data-quality/unit_tests/testing_dataset/one_invalid_among_five.sqlite3"
+    tested_dataset = "unit_tests/testing_dataset/one_invalid_among_five.sqlite3"
     query_runner = QueryRunner(tested_dataset)
     
     table_name = "one_invalid_among_five"
