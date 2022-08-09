@@ -500,3 +500,43 @@ def test_check_json_keys_are_within_Expected_keys_set_False():
     assert response.result == False
     assert response.msg == "Fail: found non-expected json keys in the field 'json' on table 'entity', see details"
     # because in this case the details will bring ~450 rows we decided not to assert details content
+
+def test_check_value_for_field_is_within_expected_range_True():   
+    "Test with field that have values inside the range"
+    table_name = "entity"
+    field_name = "reference"
+    min_expected_value = 1021466
+    max_expected_value = 1481085
+    ref_fields = ["entity"]
+
+    check_json_values_within_expected_set = CheckValueInFieldIsWithinExpectedRange(query_runner=query_runner)
+    response = check_json_values_within_expected_set.check(table_name,field_name,min_expected_value,max_expected_value,ref_fields)
+        
+    assert response.result == True
+    assert response.msg == "Success: data quality as expected"
+    assert response.details == None
+
+def test_check_value_for_field_is_within_expected_range_False():   
+    "Test with smaller max value for range, gets 18 records out of range, returns False"
+    table_name = "entity"
+    field_name = "reference"
+    min_expected_value = 1021466
+    max_expected_value = 1300000
+    ref_fields = ["entity"]
+
+    check_json_values_within_expected_set = CheckValueInFieldIsWithinExpectedRange(query_runner=query_runner)
+    response = check_json_values_within_expected_set.check(table_name,field_name,min_expected_value,max_expected_value,ref_fields)
+    
+    
+    assert response.result == False
+    assert response.msg == "Fail: found values out of the expected range for field 'reference' on table 'entity', see details"
+    assert response.details == {'records_with_value_out_of_range': [
+        {'entity': 42114935, 'reference': '1303676'}, {'entity': 42114936, 'reference': '1303751'}, 
+        {'entity': 42114937, 'reference': '1340606'}, {'entity': 42114938, 'reference': '1340607'}, 
+        {'entity': 42114939, 'reference': '1340608'}, {'entity': 42114940, 'reference': '1379929'}, 
+        {'entity': 42114941, 'reference': '1380619'}, {'entity': 42114942, 'reference': '1389103'}, 
+        {'entity': 42114943, 'reference': '1393287'}, {'entity': 42114944, 'reference': '1418993'}, 
+        {'entity': 42114945, 'reference': '1419345'}, {'entity': 42114946, 'reference': '1419396'}, 
+        {'entity': 42114947, 'reference': '1419405'}, {'entity': 42114948, 'reference': '1419823'}, 
+        {'entity': 42114949, 'reference': '1420087'}, {'entity': 42114950, 'reference': '1422933'}, 
+        {'entity': 42114951, 'reference': '1425089'}, {'entity': 42114952, 'reference': '1439997'}]}

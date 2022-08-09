@@ -291,5 +291,26 @@ class CheckValueInFieldIsWithinExpectedRange(Expectation):
     """Receives a table name, a field name checks the values found in the field
     are within the expected range
     """ 
-    def check(self, table_name: str, field_name: str, min_expected_value: int, max_expected_value: int):
-        NotImplemented
+    def check(self, table_name: str, field_name: str, min_expected_value: int, max_expected_value: int, ref_fields:list):
+        
+        expectation_response = ExpectationResponse(expectation_input=locals())        
+
+        str_ref_fields = ",".join(ref_fields)
+
+        sql_query=f"""SELECT {str_ref_fields},{field_name} 
+                      FROM {table_name} 
+                      WHERE {field_name} < {min_expected_value} OR {field_name} > {max_expected_value}"""
+        
+        records_with_value_out_of_range = self.query_runner.run_query(sql_query)
+
+        print(len(records_with_value_out_of_range))
+
+        expectation_response.result = (len(records_with_value_out_of_range) == 0)
+        if expectation_response.result:
+            expectation_response.msg = "Success: data quality as expected"
+            expectation_response.details = None
+        else:
+            expectation_response.msg = f"Fail: found values out of the expected range for field '{field_name}' on table '{table_name}', see details"
+            expectation_response.details = {"records_with_value_out_of_range": records_with_value_out_of_range.to_dict(orient='records') }
+
+        return expectation_response
