@@ -14,8 +14,8 @@ query_runner = QueryRunner(dataset_to_check)
 # Run expectations according to configuration yaml 
 # Dataset level expectation
 expected_tables = {data_quality_suite_config["tables"][i]['tb_name'] for i in range(0,len(data_quality_suite_config["tables"]))}
-check_for_expected_tables= CheckDatabaseHasExpectedTables(query_runner = query_runner) 
-response = check_for_expected_tables.check(expected_tables,fail_if_found_more_than_expected = False)
+
+response = expect_database_to_have_set_of_tables(query_runner, expected_tables,fail_if_found_more_than_expected = False)
 
 # FOR DEMO
 print(f"response.result = {response.result}")

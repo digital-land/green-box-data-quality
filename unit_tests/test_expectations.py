@@ -554,3 +554,47 @@ def test_check_value_for_field_is_within_expected_range_False():
         {'entity': 42114947, 'reference': '1419405'}, {'entity': 42114948, 'reference': '1419823'}, 
         {'entity': 42114949, 'reference': '1420087'}, {'entity': 42114950, 'reference': '1422933'}, 
         {'entity': 42114951, 'reference': '1425089'}, {'entity': 42114952, 'reference': '1439997'}]}
+
+def test_check_custom_query_expectataion_True():   
+    "Test custom query with matching result"
+    
+    custom_query = "SELECT dataset, entity, typology, reference FROM entity WHERE reference IN (1090769,1090770,1090771,1090772)"
+    expected_query_result = [
+        {'dataset': 'listed-building-outline', 'entity': 42114488, 'typology': 'geography', 'reference': '1090769'}, 
+        {'dataset': 'listed-building-outline', 'entity': 42114489, 'typology': 'geography', 'reference': '1090770'}, 
+        {'dataset': 'listed-building-outline', 'entity': 42114490, 'typology': 'geography', 'reference': '1090771'}, 
+        {'dataset': 'listed-building-outline', 'entity': 42114491, 'typology': 'geography', 'reference': '1090772'}]
+ 
+    response = expect_custom_query_result_to_be_as_predicted(query_runner, custom_query, expected_query_result)
+      
+    assert response.result == True
+    assert response.msg == "Success: data quality as expected"
+    assert response.details == None 
+
+def test_check_custom_query_expectataion_Fail():   
+    "Test custom query with but receive one more row than expected in the result"
+    
+    custom_query = "SELECT dataset, entity, typology, reference FROM entity WHERE reference IN (1090769,1090770,1090771,1090772)"
+    expected_query_result = [
+        {'dataset': 'listed-building-outline', 'entity': 42114488, 'typology': 'geography', 'reference': '1090769'}, 
+        {'dataset': 'listed-building-outline', 'entity': 42114489, 'typology': 'geography', 'reference': '1090770'}, 
+        {'dataset': 'listed-building-outline', 'entity': 42114490, 'typology': 'geography', 'reference': '1090771'}]
+ 
+    response = expect_custom_query_result_to_be_as_predicted(query_runner, custom_query, expected_query_result)
+    
+    print(response.details)
+
+    assert response.result == False
+    assert response.msg == "Fail: result for custom query was not as expected, see details"
+    assert response.details == {
+        'custom_query': 'SELECT dataset, entity, typology, reference FROM entity WHERE reference IN (1090769,1090770,1090771,1090772)', 
+        'query_result': [
+            {'dataset': 'listed-building-outline', 'entity': 42114488, 'typology': 'geography', 'reference': '1090769'}, 
+            {'dataset': 'listed-building-outline', 'entity': 42114489, 'typology': 'geography', 'reference': '1090770'}, 
+            {'dataset': 'listed-building-outline', 'entity': 42114490, 'typology': 'geography', 'reference': '1090771'}, 
+            {'dataset': 'listed-building-outline', 'entity': 42114491, 'typology': 'geography', 'reference': '1090772'}], 
+        'expected_query_result': [
+            {'dataset': 'listed-building-outline', 'entity': 42114488, 'typology': 'geography', 'reference': '1090769'}, 
+            {'dataset': 'listed-building-outline', 'entity': 42114489, 'typology': 'geography', 'reference': '1090770'}, 
+            {'dataset': 'listed-building-outline', 'entity': 42114490, 'typology': 'geography', 'reference': '1090771'}]}
+    

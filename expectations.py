@@ -1,7 +1,6 @@
 import pandas as pd
 from core import QueryRunner, ExpectationResponse
 
-# Wrote this to see if new design of expectations as functions is cleaner
 def expect_database_to_have_set_of_tables(
         query_runner: QueryRunner, 
         expected_tables_set: set, 
@@ -360,6 +359,41 @@ def expect_values_in_field_to_be_within_range(
     else:
         msg = f"Fail: found values out of the expected range for field '{field_name}' on table '{table_name}', see details"
         details = {"records_with_value_out_of_range": records_with_value_out_of_range.to_dict(orient='records') }
+
+    expectation_response = ExpectationResponse(
+        expectation_input=locals(),
+        result = result,
+        msg = msg,
+        details = details )
+
+    return expectation_response
+
+def expect_custom_query_result_to_be_as_predicted(
+            query_runner: QueryRunner, custom_query: str, 
+            expected_query_result: list):
+    """Receives a custom sqlite/spatialite query as string and a expected
+    result in the form of list of row dictionaires, for example, 3 rows would look like this:
+
+    [{'column_name1': value_for_c1, 'column_name_2': value_for_c2, 'column_name_3': value_for_c3},
+     {'column_name1': value_for_c1, 'column_name_2': value_for_c2, 'column_name_3': value_for_c3},
+     {'column_name1': value_for_c1, 'column_name_2': value_for_c2, 'column_name_3': value_for_c3}]
+    
+    Returns True if the result for the query are as expected and False otherwise, with details.    
+    """ 
+    
+    query_result = query_runner.run_query(custom_query)
+   
+    result = (query_result.to_dict(orient='records') == expected_query_result)
+    
+    if result:
+        msg = "Success: data quality as expected"
+        details = None
+    else:
+        msg = f"Fail: result for custom query was not as expected, see details"
+        details = {"custom_query": custom_query,
+                    "query_result":query_result.to_dict(orient='records'),
+                    "expected_query_result":expected_query_result}
+
 
     expectation_response = ExpectationResponse(
         expectation_input=locals(),
