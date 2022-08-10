@@ -41,12 +41,6 @@ class QueryRunner():
         else:
             return results            
  
-class Expectation():
-    """Parent class for expectations, all expectations receive a query runner 
-    to be able to run queries against the db"""    
-    def __init__(self, query_runner: QueryRunner):
-        self.query_runner = query_runner 
-
 @dataclass
 class ExpectationResponse():
     """Class to keep inputs and results of expectations"""
