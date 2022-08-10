@@ -1,15 +1,18 @@
 import pandas as pd
 from core import QueryRunner, ExpectationResponse
+from math import inf
 
 def expect_database_to_have_set_of_tables(
         query_runner: QueryRunner, 
         expected_tables_set: set, 
-        fail_if_found_more_than_expected: bool = True,
+        fail_if_found_more_than_expected: bool = False,
         ):
     """Receives a set with table names and checks if all of
     the tables can be found in the database. It returns True if all found and
-    False if at least one is not found. It doesn't verify if additional tables
-    are present in the database side. 
+    False if at least one is not found.
+    By default it is one-sided, if you with to fail in cases where found more
+    tables than expected change optional argument 
+    fail_if_found_more_than_expected to True
     """                
     
     sql_query ="SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;"
@@ -39,7 +42,7 @@ def expect_database_to_have_set_of_tables(
 
 def expect_table_to_have_set_of_columns(
         query_runner: QueryRunner, table_name: str, 
-        expected_columns_set: set, fail_if_found_more_than_expected: bool = True):
+        expected_columns_set: set, fail_if_found_more_than_expected: bool = False):
     """Receives a table name and a set with column names and 
     checks if all of columns can be found in the table. It returns True if all 
     found and False if at least one is not found. It doesn't verify if additional
@@ -71,12 +74,9 @@ def expect_table_to_have_set_of_columns(
 
     return expectation_response
 
-
-# class CheckTableHasRowCountInExpectedRange(Expectation):
-
 def expect_table_row_count_to_be_in_range(
         query_runner: QueryRunner, table_name: str, 
-        min_expected_row_count: int, max_expected_row_count: int):
+        min_expected_row_count: int =0, max_expected_row_count: int = inf):
     """Receives a table name and a min and max for row count. It
     returns True if the row count is within the range and False otherwise, inclusive
     of min and max. 
@@ -120,11 +120,13 @@ def expect_row_count_for_lookup_value_to_be_in_range(
     return False
     """    
         
-    df_expected_counts_by_value = pd.DataFrame(count_ranges_per_value)
-    
+    df_expected_counts_by_value = pd.DataFrame(count_ranges_per_value)    
+    df_expected_counts_by_value["lookup_value"] = df_expected_counts_by_value["lookup_value"].astype("string")
+
     sql_query =f"SELECT {field_name} AS lookup_value,COUNT(*) AS rows_found FROM {table_name} GROUP BY {field_name};"
     counted_rows_by_grouped_value = query_runner.run_query(sql_query)  
-    
+    counted_rows_by_grouped_value["lookup_value"] = counted_rows_by_grouped_value["lookup_value"].astype("string")
+
     expected_versus_found_df = df_expected_counts_by_value.merge(counted_rows_by_grouped_value, on="lookup_value", how='left')        
     
     found_not_within_range = expected_versus_found_df.loc[
@@ -189,7 +191,7 @@ def expect_field_values_to_be_within_set(
 
     return expectation_response
 
-def expect_values_for_field_to_be_unique(query_runner: QueryRunner, table_name: str, fields:list):        
+def expect_values_for_field_to_be_unique(query_runner: QueryRunner, table_name: str, fields:list, **kwargs):        
     """Receives a table name, a field (or a set of fields) and checks
     the table doesn't have duplicity for that field (or set of fields).
     Returns True if in the table there are not 2 rows with identical values
@@ -218,7 +220,8 @@ def expect_values_for_field_to_be_unique(query_runner: QueryRunner, table_name: 
 
     return expectation_response
 
-def expect_geoshapes_to_be_valid(query_runner: QueryRunner, table_name: str, shape_field: str, ref_fields:list):        
+def expect_geoshapes_to_be_valid(query_runner: QueryRunner, table_name: str, 
+                                shape_field: str, ref_fields:list, **kwargs):        
     """Receives a table name, a shape field and an shape ref field (or set of)
     checks that the shapes are valid. Returns True if all are valid. Returns
     False if shapes are invalid and in the details returns ref for the shapes
@@ -297,7 +300,7 @@ def expect_values_for_a_key_stored_in_json_are_within_a_set(
     return expectation_response
 
 
-def expect_keys_in_json_field_to_be_in_set_of_values(
+def expect_keys_in_json_field_to_be_in_set_of_options(
             query_runner: QueryRunner, table_name: str, 
             field_name: str, expected_keys_set: set, ref_fields:list):
     """Receives a table name, a field name (of a field that has a JSON text 
@@ -315,9 +318,8 @@ def expect_keys_in_json_field_to_be_in_set_of_values(
     sql_query =f"""
         SELECT {str_ref_fields},json_remove({field_name}, {str_expected_keys_set}) AS non_expected_keys 
         FROM {table_name} 
-        WHERE 
-            json_remove({field_name}, {str_expected_keys_set}) !=""" + "'{}'" +f" OR json_remove({field_name}, {str_expected_keys_set}) IS NULL;"
-    
+        WHERE non_expected_keys IS NOT NULL AND non_expected_keys <> '""" + "{}'"
+
     non_expected_keys = query_runner.run_query(sql_query)
 
     result = (len(non_expected_keys) == 0)

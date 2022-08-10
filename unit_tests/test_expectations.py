@@ -161,9 +161,9 @@ def test_row_count_grouped_by_field_Success2():
     table_name = "fact"
     field_name = "entity"
     dict_value_and_count_ranges = [
-       {"lookup_value":42114488,"min_row_count":8,"max_row_count":10},
-       {"lookup_value":42114489,"min_row_count":8,"max_row_count":10},
-       {"lookup_value":42114490,"min_row_count":8,"max_row_count":10}]
+       {"lookup_value":'42114488',"min_row_count":8,"max_row_count":10},
+       {"lookup_value":'42114489',"min_row_count":8,"max_row_count":10},
+       {"lookup_value":'42114490',"min_row_count":8,"max_row_count":10}]
 
     response = expect_row_count_for_lookup_value_to_be_in_range(
                                                 query_runner=query_runner,
@@ -180,19 +180,19 @@ def test_row_count_grouped_by_field_Fail():
     table_name = "fact"
     field_name = "entity"
     dict_value_and_count_ranges = [
-       {"lookup_value":42114488,"min_row_count":8,"max_row_count":10},
-       {"lookup_value":42114489,"min_row_count":8,"max_row_count":10},
-       {"lookup_value":42114490,"min_row_count":6,"max_row_count":8}]    
+       {"lookup_value":'42114488',"min_row_count":8,"max_row_count":10},
+       {"lookup_value":'42114489',"min_row_count":8,"max_row_count":10},
+       {"lookup_value":'42114490',"min_row_count":6,"max_row_count":8}]    
 
     response = expect_row_count_for_lookup_value_to_be_in_range(
                                                 query_runner=query_runner,
                                                 table_name=table_name, 
                                                 field_name=field_name ,  
                                                 count_ranges_per_value=dict_value_and_count_ranges)
-
+    
     assert response.result == False
     assert response.msg == "Fail: table 'fact': one or more counts per lookup_value not in expected range see for more info see details"
-    assert response.details == [{'lookup_value': 42114490, 'min_row_count': 6, 'max_row_count': 8, 'rows_found': 9}]
+    assert response.details == [{'lookup_value': '42114490', 'min_row_count': 6, 'max_row_count': 8, 'rows_found': 9}]
 
 def test_check_field_values_within_expected_set_of_values_No_unexpected_value():   
     "Returns True as all values are within the expected set (but not full expected set is found)"
@@ -487,7 +487,7 @@ def test_check_json_keys_are_within_Expected_keys_set_True():
     expected_key_set ={"listed-building-grade", "documentation-url" , "description" , "notes"}
     
    
-    response = expect_keys_in_json_field_to_be_in_set_of_values(
+    response = expect_keys_in_json_field_to_be_in_set_of_options(
                                 query_runner, table_name,field_name,
                                 expected_key_set,ref_fields)
     
@@ -502,7 +502,7 @@ def test_check_json_keys_are_within_Expected_keys_set_False():
     ref_fields = ["entity"]
     expected_key_set ={"listed-building-grade", "documentation-url" , "description" }
    
-    response = expect_keys_in_json_field_to_be_in_set_of_values(
+    response = expect_keys_in_json_field_to_be_in_set_of_options(
                                 query_runner, table_name,field_name,
                                 expected_key_set,ref_fields)   
 
