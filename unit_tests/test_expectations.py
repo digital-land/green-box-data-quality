@@ -407,7 +407,7 @@ def test_check_geo_shapes_are_valid_False():
     response = expect_geoshapes_to_be_valid(query_runner, table_name, shape_field, ref_fields)
 
     assert response.result == False    
-    assert response.msg == "Fail: invalid shapes found in field 'geometry' on table 'one_invalid_among_five', see details"
+    assert response.msg == "Fail: 1 invalid shapes found in field 'geometry' on table 'one_invalid_among_five', see details"
     assert response.details == {'invalid_shapes': [{'entity': 303443, 'is_valid': 0}]}
 
 def test_check_json_values_for_key_within_expected_set_True():   
@@ -540,7 +540,7 @@ def test_check_value_for_field_is_within_expected_range_False():
     
     
     assert response.result == False
-    assert response.msg == "Fail: found values out of the expected range for field 'reference' on table 'entity', see details"
+    assert response.msg == "Fail: found 18 values out of the expected range for field 'reference' on table 'entity', see details"
     assert response.details == {'records_with_value_out_of_range': [
         {'entity': 42114935, 'reference': '1303676'}, {'entity': 42114936, 'reference': '1303751'}, 
         {'entity': 42114937, 'reference': '1340606'}, {'entity': 42114938, 'reference': '1340607'}, 
@@ -594,4 +594,4 @@ def test_check_custom_query_expectataion_Fail():
             {'dataset': 'listed-building-outline', 'entity': 42114488, 'typology': 'geography', 'reference': '1090769'}, 
             {'dataset': 'listed-building-outline', 'entity': 42114489, 'typology': 'geography', 'reference': '1090770'}, 
             {'dataset': 'listed-building-outline', 'entity': 42114490, 'typology': 'geography', 'reference': '1090771'}]}
-    
+

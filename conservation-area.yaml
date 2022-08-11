@@ -1,24 +1,27 @@
 collection_name: conservation-area
 
 table_checks:
-  - tb_name: column_field
+  expectation_severity: LogWarning
+  tables: 
+  - tb_name: column_field    
     min_expected_row_count: 300
     max_expected_row_count: 600
-  - tb_name: "dataset_resource"
+  - tb_name: dataset_resource    
     min_expected_row_count: 90
     max_expected_row_count: 200
-  - tb_name: "entity"
+  - tb_name: entity    
     min_expected_row_count: 8500
     max_expected_row_count: 12000
-  - tb_name: "fact"
+  - tb_name: fact    
     min_expected_row_count: 80000
     max_expected_row_count: 85000
-  - tb_name: "fact_resource"
+  - tb_name: fact_resource    
     min_expected_row_count: 175000
     max_expected_row_count: 185000
 
 field_existence_checks:
-  - tb_name: "entity"    
+  - tb_name: entity
+    expectation_severity: RaiseError    
     tb_expected_columns:
       - dataset 
       - end_date 
@@ -40,11 +43,13 @@ field_level_checks:
     field_name: entity
     expectations:
       - name: expect_values_for_field_to_be_unique
+        expectation_severity: LogWarning
         fields:
           - entity
       - name: expect_values_in_field_to_be_within_range
-        min_expected_value: '44000000'
-        max_expected_value: '44999999'
+        min_expected_value: 44000000
+        max_expected_value: 44999999
+        expectation_severity: RaiseError
         ref_fields:
           - entity
 
@@ -52,6 +57,7 @@ field_level_checks:
     field_name: geometry    
     expectations: 
       - name: expect_geoshapes_to_be_valid
+        expectation_severity: LogWarning
         ref_fields: 
           - entity
         shape_field: geometry
@@ -60,6 +66,7 @@ field_level_checks:
     field_name: organisation_entity
     expectations:
       - name: expect_row_count_for_lookup_value_to_be_in_range
+        expectation_severity: LogWarning
         count_ranges_per_value:
           - lookup_value: 16 
             min_row_count: 7000
@@ -72,6 +79,7 @@ field_level_checks:
     field_name: json 
     expectations: 
       - name: expect_keys_in_json_field_to_be_in_set_of_options
+        expectation_severity: LogWarning
         ref_fields: 
             - entity
         expected_keys_set: 
@@ -92,17 +100,19 @@ field_level_checks:
  
 custom_queries:
   - query: "SELECT dataset, entity, typology, reference FROM entity WHERE reference IN (6407,6345)"
+    expectation_severity: LogWarning
     expected_result: 
-      - dataset: conservation-area
+      - dataset: conservation-area        
         entity: 303444
         typology: geography
         reference: "6407"
-      - dataset: conservation-area
+      - dataset: conservation-area        
         entity: 303445
         typology: geography
         reference: "6345"    
    
   - query: "SELECT entity FROM entity WHERE within(GeomFromText('POINT(-0.07850740376649457 51.51240013438393)'), GeomFromText(geometry));"
+    expectation_severity: LogWarning
     expected_result: 
       - entity: 303443
 

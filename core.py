@@ -4,6 +4,9 @@ import yaml
 from dataclasses import dataclass, field
 from dataclasses_json import dataclass_json
 from datetime import datetime
+from enum import Enum
+import warnings
+import copy
 
 
 def transform_df_first_column_into_set(dataframe:pd.DataFrame) -> set:
@@ -16,6 +19,19 @@ def config_parser(filepath:str):
         config = yaml.load(file, Loader=yaml.FullLoader)
         config = dict(config)
     return config
+
+# class ExpectationSeverity(Enum):
+#     RaiseError = "error"
+#     LogWarning = "warning"
+
+class DataQualityException(Exception):
+    """Exception raised for failed expectations with severity RaiseError.
+    Attributes: response
+    """
+    def __init__(self, response, message):
+        self.response = response
+        self.message = message
+        super().__init__(self.message)
 
 class QueryRunner():
     "Class to run queries usings spatialite"
@@ -84,9 +100,20 @@ class ExpectationResponse():
         if self.result == True:
             name_status = "success"
         else:
-            name_status = "fail"        
-        name_hash = hash(self.to_json())
+            name_status = "fail"      
+        
+        name_hash=datetime.utcnow().strftime('%Y%m%d%H%M%S%f')[:-3]        
         file_name = f"{self.data_quality_execution_time}_{name_status}_{self.expectation_input['expectation_name']}_{name_hash}.json"
         
         with open(dir_path+file_name, "w") as f:
-            f.write(self.to_json())
+            self_save_version = copy.deepcopy(self)
+            self_save_version.result = str(self_save_version.result)
+            f.write(self_save_version.to_json())
+    
+    def act_on_failure(self):
+        "Raises error if severity is RaiseError or shows warning if severity is LogWarning"
+
+        if self.result == False and self.expectation_input['expectation_severity'] == "RaiseError":
+            raise DataQualityException(self, self.msg)
+        elif self.result == False and self.expectation_input['expectation_severity'] == "LogWarning":
+            warnings.warn(self.msg)

@@ -24,4 +24,4 @@ This is a very early stage of the tool and several paths are hardcoded to their 
 
 Executing a suite of data quality tests yaml:
 
-    python3 main.py --results-path "results/" --sqlite-dataset-path "/src/sharing_area/conservation-area-collection/dataset/conservation-area.sqlite3" --data-quality-suite-yaml "/src/sharing_area/green-box-data-quality/conservation_area_data_qual_suite.yaml"
+    python3 main.py --results-path "results/" --sqlite-dataset-path "/src/sharing_area/conservation-area-collection/dataset/conservation-area.sqlite3" --data-quality-suite-yaml "/src/sharing_area/green-box-data-quality/conservation-area.yaml"
