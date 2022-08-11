@@ -2,7 +2,9 @@ import spatialite
 import pandas as pd
 import yaml
 from dataclasses import dataclass, field
+from dataclasses_json import dataclass_json
 from datetime import datetime
+
 
 def transform_df_first_column_into_set(dataframe:pd.DataFrame) -> set:
     "Given a pd dataframe returns the first column as a python set"
@@ -45,7 +47,8 @@ class QueryRunner():
             return transform_df_first_column_into_set(results)
         else:
             return results            
- 
+
+@dataclass_json
 @dataclass
 class ExpectationResponse():
     """Class to keep inputs and results of expectations"""
@@ -54,24 +57,36 @@ class ExpectationResponse():
     msg: str = None    
     details: dict = None
     sqlite_dataset: str = None
-    data_quality_execution_time: str = field(init=False)
-    collection_name: str = field(init=False)
+    data_quality_execution_time: str = field(init=False)    
     
 
     def __post_init__(self):
-        
-        self.expectation_input.pop('query_runner')
+        "Adds a few more interesting items and adjusts response for log"
 
-        data_quality_execution_time = getattr(globals(), 'data_quality_execution_time', None)        
+        self.expectation_input.pop('query_runner')
+        
+        check_for_kwards = self.expectation_input.get("kwargs", None)
+        if check_for_kwards:
+            data_quality_execution_time = check_for_kwards.get("data_quality_execution_time", None)
+        else:
+            data_quality_execution_time = None
+
         if data_quality_execution_time:
             self.data_quality_execution_time = data_quality_execution_time
         else:
             now = datetime.now()
-            self.data_quality_execution_time = now.strftime("%d/%m/%Y %H:%M:%S")
-        
-        data_quality_suite_config = getattr(globals(), 'data_quality_suite_config', None)
-        
-        if data_quality_suite_config:
-            self.collection_name = data_quality_suite_config.get('collection_name', "Collection name not found")
+            self.data_quality_execution_time = now.strftime("%Y%m%d_%H%M%S")           
+ 
+    
+    def save_to_file(self, dir_path: str):
+        "Prepares a naming convention and saves the response to a provided path"
+
+        if self.result == True:
+            name_status = "success"
         else:
-            self.collection_name = "Collection name not found"
+            name_status = "fail"        
+        name_hash = hash(self.to_json())
+        file_name = f"{self.data_quality_execution_time}_{name_status}_{self.expectation_input['expectation_name']}_{name_hash}.json"
+        
+        with open(dir_path+file_name, "w") as f:
+            f.write(self.to_json())

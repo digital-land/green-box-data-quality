@@ -89,10 +89,8 @@ field_level_checks:
           - reference
           - start-date
           - conservation-area
-
-# TODO implement custom queries in main     
+ 
 custom_queries:
-
   - query: "SELECT dataset, entity, typology, reference FROM entity WHERE reference IN (6407,6345)"
     expected_result: 
       - dataset: conservation-area

@@ -1,6 +1,8 @@
+import inspect
 import pandas as pd
 from core import QueryRunner, ExpectationResponse
 from math import inf
+
 
 def expect_database_to_have_set_of_tables(
         query_runner: QueryRunner, expected_tables_set: set, 
@@ -12,8 +14,9 @@ def expect_database_to_have_set_of_tables(
     tables than expected change optional argument 
     fail_if_found_more_than_expected to True
     """                
+    expectation_name = inspect.currentframe().f_code.co_name
     expectation_input=locals()
-
+    
     sql_query ="SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;"
     found_tables_set = query_runner.run_query(sql_query, return_only_first_col_as_set=True)
             
@@ -48,6 +51,7 @@ def expect_table_to_have_set_of_columns(
     found and False if at least one is not found. It doesn't verify if additional
     columns are present in the table. 
     """ 
+    expectation_name = inspect.currentframe().f_code.co_name
     expectation_input=locals()
 
     sql_query =f"SELECT name FROM pragma_table_info('{table_name}');"
@@ -83,6 +87,7 @@ def expect_table_row_count_to_be_in_range(
     returns True if the row count is within the range and False otherwise, inclusive
     of min and max. 
     """ 
+    expectation_name = inspect.currentframe().f_code.co_name
     expectation_input=locals()
 
     sql_query =f"SELECT COUNT(*) AS row_count FROM {table_name};"
@@ -122,6 +127,7 @@ def expect_row_count_for_lookup_value_to_be_in_range(
     return True, if at least one of the counts is not inside the range it will
     return False
     """    
+    expectation_name = inspect.currentframe().f_code.co_name
     expectation_input=locals()
 
     df_expected_counts_by_value = pd.DataFrame(count_ranges_per_value)    
@@ -170,6 +176,7 @@ def expect_field_values_to_be_within_set(
     also return False in cases where a value of the expected set was not 
     present in the table.    
     """ 
+    expectation_name = inspect.currentframe().f_code.co_name
     expectation_input=locals()
 
     sql_query =f"SELECT {field_name} FROM {table_name} GROUP BY 1;"
@@ -204,6 +211,7 @@ def expect_values_for_field_to_be_unique(query_runner: QueryRunner, table_name: 
     Returns True if in the table there are not 2 rows with identical values
     for the field (or set of fields) and False otherwise.    
     """ 
+    expectation_name = inspect.currentframe().f_code.co_name
     expectation_input=locals()
 
     str_fields = ",".join(fields)        
@@ -236,6 +244,7 @@ def expect_geoshapes_to_be_valid(query_runner: QueryRunner, table_name: str,
     False if shapes are invalid and in the details returns ref for the shapes
     that were invalid (is_valid=0) or if shape parsing failed unknown(is_valid=-1).
     """ 
+    expectation_name = inspect.currentframe().f_code.co_name
     expectation_input=locals()
 
     str_ref_fields = ",".join(ref_fields)     
@@ -280,6 +289,7 @@ def expect_values_for_a_key_stored_in_json_are_within_a_set(
     One-sided: will not check if all expected values are found, only if all 
     found values are within the expected
     """ 
+    expectation_name = inspect.currentframe().f_code.co_name
     expectation_input=locals()
 
     str_ref_fields = ",".join(ref_fields)  
@@ -322,6 +332,7 @@ def expect_keys_in_json_field_to_be_in_set_of_options(
     One sided: will not check if all expected keys are found, only if all 
     found are within the expected
     """ 
+    expectation_name = inspect.currentframe().f_code.co_name
     expectation_input=locals()
 
     str_ref_fields = ",".join(ref_fields)  
@@ -360,6 +371,7 @@ def expect_values_in_field_to_be_within_range(
     """Receives a table name, a field name checks the values found in the field
     are within the expected range
     """ 
+    expectation_name = inspect.currentframe().f_code.co_name
     expectation_input=locals()
 
     str_ref_fields = ",".join(ref_fields)
@@ -399,6 +411,7 @@ def expect_custom_query_result_to_be_as_predicted(
     
     Returns True if the result for the query are as expected and False otherwise, with details.    
     """ 
+    expectation_name = inspect.currentframe().f_code.co_name
     expectation_input=locals()
 
     query_result = query_runner.run_query(custom_query)

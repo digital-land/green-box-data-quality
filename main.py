@@ -6,23 +6,19 @@ from datetime import datetime
 
         
 @click.command()
-@click.option("--collection-name", help="The collection name", required=True)
+@click.option("--results-path", help="The path to save the json results", required=True)
 @click.option("--sqlite-dataset-path", help="The path to the sqlite3 dataset", required=True)
 @click.option("--data-quality-suite-yaml", help="The path to the sqlite3 dataset", required=True)
-def run_dq_suite(collection_name, sqlite_dataset_path, data_quality_suite_yaml):
-    print(f"collection_name: {collection_name}")
+def run_dq_suite(results_path, sqlite_dataset_path, data_quality_suite_yaml):    
     print(f"sqlite_path:{sqlite_dataset_path}")
     print(f"dq_suite:{data_quality_suite_yaml}")
 
-    # GLOBALS
-    global data_quality_execution_time 
+      
     now = datetime.now()
-    data_quality_execution_time = now.strftime("%d/%m/%Y %H:%M:%S")
-
-    global data_quality_suite_config
+    data_quality_execution_time = now.strftime("%Y%m%d_%H%M%S") 
+    
     data_quality_suite_config = config_parser(data_quality_suite_yaml)    
 
-    global query_runner
     query_runner = QueryRunner(sqlite_dataset_path)  
   
     # TABLE EXPECTATIONS   
@@ -40,8 +36,9 @@ def run_dq_suite(collection_name, sqlite_dataset_path, data_quality_suite_yaml):
             response = expect_database_to_have_set_of_tables(
                                                     query_runner=query_runner,
                                                     expected_tables_set=expected_tables_set,
-                                                    fail_if_found_more_than_expected=False)
-            # TODO save response if found issues
+                                                    fail_if_found_more_than_expected=False,
+                                                    data_quality_execution_time=data_quality_execution_time)
+            response.save_to_file(results_path)
 
             # table row counts
 
@@ -59,9 +56,12 @@ def run_dq_suite(collection_name, sqlite_dataset_path, data_quality_suite_yaml):
            
             if table_row_count_inputs:
                 for tb in table_row_count_inputs:   
-                    response = expect_table_row_count_to_be_in_range(query_runner=query_runner, table_name=tb["tb_name"],
-                                    min_expected_row_count=tb["min_row_count"], max_expected_row_count=tb["max_row_count"])
-                    # TODO save response if found issues
+                    response = expect_table_row_count_to_be_in_range(query_runner=query_runner, 
+                                                                    table_name=tb["tb_name"],
+                                                                    min_expected_row_count=tb["min_row_count"], 
+                                                                    max_expected_row_count=tb["max_row_count"],
+                                                                    data_quality_execution_time=data_quality_execution_time)
+                    response.save_to_file(results_path)
 
     # FIELD EXISTENCE EXPECTATIONS:
     field_existence_checks = data_quality_suite_config.get('field_existence_checks', None)  
@@ -75,8 +75,9 @@ def run_dq_suite(collection_name, sqlite_dataset_path, data_quality_suite_yaml):
                                             query_runner=query_runner, 
                                             table_name=item["tb_name"], 
                                             expected_columns_set=expected_columns_set, 
-                                            fail_if_found_more_than_expected= False)            
-            # TODO save response if found issues
+                                            fail_if_found_more_than_expected= False,
+                                            data_quality_execution_time=data_quality_execution_time )            
+            response.save_to_file(results_path)
      
     # FIELD LEVEL EXPECTATIONS:
     field_level_checks = data_quality_suite_config.get("field_level_checks", None)   
@@ -90,9 +91,11 @@ def run_dq_suite(collection_name, sqlite_dataset_path, data_quality_suite_yaml):
                     "field_name": item['field_name'],
                     **expectation}
             
-            response = run_expectation(query_runner=query_runner,**arguments)
-            
-            # TODO save response if found issues
+            response = run_expectation(
+                        query_runner=query_runner,
+                        data_quality_execution_time=data_quality_execution_time,
+                        **arguments)
+            response.save_to_file(results_path)            
     
     # CUSTOM QUERY EXPECTATIONS
     custom_query_expectations = data_quality_suite_config.get("custom_queries", None)   
@@ -105,12 +108,15 @@ def run_dq_suite(collection_name, sqlite_dataset_path, data_quality_suite_yaml):
             response = expect_custom_query_result_to_be_as_predicted(
                         query_runner = query_runner,
                         custom_query = custom_query,
-                        expected_query_result = expected_query_result
+                        expected_query_result = expected_query_result,
+                        data_quality_execution_time=data_quality_execution_time
                         )
-            # TODO save response if found issues
+            response.save_to_file(results_path)
+            
 
 def run_expectation(query_runner: QueryRunner, name:str , **kwargs):    
     return globals()[name](query_runner=query_runner,**kwargs)
   
 if __name__ == '__main__':
     run_dq_suite()
+

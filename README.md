@@ -5,6 +5,13 @@ This tool was developed to make easy to run Data Quality checks agains our pipel
 It's development environment was a docker container with the setup exactly as described here:
 https://github.com/digital-land/digital-land-docker-pipeline-runner
 
+Dependencies not yet included in the docker setup:
+
+    apt-get install libsqlite3-mod-spatialite -y
+    pip install spatialite
+    pip install pyyaml
+    pip install dataclasses-json
+
 The unit tests expect the tool to be running from the following dir inside the container:
     
     /src/sharing_area/green-box-data-quality/
@@ -17,4 +24,4 @@ This is a very early stage of the tool and several paths are hardcoded to their 
 
 Executing a suite of data quality tests yaml:
 
-    python3 main.py --collection-name conservation-area --sqlite-dataset-path "/src/sharing_area/conservation-area-collection/dataset/conservation-area.sqlite3" --data-quality-suite-yaml "/src/sharing_area/green-box-data-quality/conservation_area_data_qual_suite.yaml"
+    python3 main.py --results-path "results/" --sqlite-dataset-path "/src/sharing_area/conservation-area-collection/dataset/conservation-area.sqlite3" --data-quality-suite-yaml "/src/sharing_area/green-box-data-quality/conservation_area_data_qual_suite.yaml"
