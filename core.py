@@ -1,7 +1,8 @@
 import spatialite
 import pandas as pd
 import yaml
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from datetime import datetime
 
 def transform_df_first_column_into_set(dataframe:pd.DataFrame) -> set:
     "Given a pd dataframe returns the first column as a python set"
@@ -21,6 +22,9 @@ class QueryRunner():
         "Receives a path/name of sqlite dataset against which it will run the queries"
         self.tested_dataset_path = tested_dataset_path
     
+    def inform_dataset_path(self):
+        return self.tested_dataset_path
+
     def run_query(self, sql_query: str, return_only_first_col_as_set: bool = False):
         """
         Receives a sql query and returns the results either in a pandas 
@@ -49,3 +53,25 @@ class ExpectationResponse():
     result: bool = None
     msg: str = None    
     details: dict = None
+    sqlite_dataset: str = None
+    data_quality_execution_time: str = field(init=False)
+    collection_name: str = field(init=False)
+    
+
+    def __post_init__(self):
+        
+        self.expectation_input.pop('query_runner')
+
+        data_quality_execution_time = getattr(globals(), 'data_quality_execution_time', None)        
+        if data_quality_execution_time:
+            self.data_quality_execution_time = data_quality_execution_time
+        else:
+            now = datetime.now()
+            self.data_quality_execution_time = now.strftime("%d/%m/%Y %H:%M:%S")
+        
+        data_quality_suite_config = getattr(globals(), 'data_quality_suite_config', None)
+        
+        if data_quality_suite_config:
+            self.collection_name = data_quality_suite_config.get('collection_name', "Collection name not found")
+        else:
+            self.collection_name = "Collection name not found"

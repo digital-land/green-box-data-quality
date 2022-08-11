@@ -3,10 +3,8 @@ from core import QueryRunner, ExpectationResponse
 from math import inf
 
 def expect_database_to_have_set_of_tables(
-        query_runner: QueryRunner, 
-        expected_tables_set: set, 
-        fail_if_found_more_than_expected: bool = False,
-        ):
+        query_runner: QueryRunner, expected_tables_set: set, 
+        fail_if_found_more_than_expected: bool = False, **kwargs):
     """Receives a set with table names and checks if all of
     the tables can be found in the database. It returns True if all found and
     False if at least one is not found.
@@ -14,7 +12,8 @@ def expect_database_to_have_set_of_tables(
     tables than expected change optional argument 
     fail_if_found_more_than_expected to True
     """                
-    
+    expectation_input=locals()
+
     sql_query ="SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;"
     found_tables_set = query_runner.run_query(sql_query, return_only_first_col_as_set=True)
             
@@ -33,22 +32,24 @@ def expect_database_to_have_set_of_tables(
 
 
     expectation_response = ExpectationResponse(
-        expectation_input=locals(),
+        expectation_input=expectation_input,
         result = result,
         msg = msg,
-        details = details )
+        details = details,
+        sqlite_dataset = query_runner.inform_dataset_path() )
 
     return expectation_response
 
 def expect_table_to_have_set_of_columns(
         query_runner: QueryRunner, table_name: str, 
-        expected_columns_set: set, fail_if_found_more_than_expected: bool = False):
+        expected_columns_set: set, fail_if_found_more_than_expected: bool = False, **kwargs):
     """Receives a table name and a set with column names and 
     checks if all of columns can be found in the table. It returns True if all 
     found and False if at least one is not found. It doesn't verify if additional
     columns are present in the table. 
     """ 
-        
+    expectation_input=locals()
+
     sql_query =f"SELECT name FROM pragma_table_info('{table_name}');"
     found_columns_set = query_runner.run_query(sql_query,return_only_first_col_as_set=True)
     
@@ -67,21 +68,23 @@ def expect_table_to_have_set_of_columns(
                    "found_columns":found_columns_set}
 
     expectation_response = ExpectationResponse(
-        expectation_input=locals(),
+        expectation_input=expectation_input,
         result = result,
         msg = msg,
-        details = details )
+        details = details,
+        sqlite_dataset = query_runner.inform_dataset_path() )
 
     return expectation_response
 
 def expect_table_row_count_to_be_in_range(
         query_runner: QueryRunner, table_name: str, 
-        min_expected_row_count: int =0, max_expected_row_count: int = inf):
+        min_expected_row_count: int =0, max_expected_row_count: int = inf, **kwargs):
     """Receives a table name and a min and max for row count. It
     returns True if the row count is within the range and False otherwise, inclusive
     of min and max. 
     """ 
-        
+    expectation_input=locals()
+
     sql_query =f"SELECT COUNT(*) AS row_count FROM {table_name};"
     counted_rows = query_runner.run_query(sql_query)['row_count'][0]
     
@@ -98,7 +101,7 @@ def expect_table_row_count_to_be_in_range(
                     "max_expected":max_expected_row_count}
     
     expectation_response = ExpectationResponse(
-        expectation_input=locals(),
+        expectation_input=expectation_input,
         result = result,
         msg = msg,
         details = details )
@@ -107,7 +110,7 @@ def expect_table_row_count_to_be_in_range(
         
 def expect_row_count_for_lookup_value_to_be_in_range(
         query_runner: QueryRunner, table_name: str, 
-        field_name: str, count_ranges_per_value: dict):        
+        field_name: str, count_ranges_per_value: dict, **kwargs):        
     """Receives a table name, a field name and a dictionary with row count 
     ranges for how many rows have the values for that field. For example: 
     with a table Person, a field Mother_First_Name and a dictionary: 
@@ -119,7 +122,8 @@ def expect_row_count_for_lookup_value_to_be_in_range(
     return True, if at least one of the counts is not inside the range it will
     return False
     """    
-        
+    expectation_input=locals()
+
     df_expected_counts_by_value = pd.DataFrame(count_ranges_per_value)    
     df_expected_counts_by_value["lookup_value"] = df_expected_counts_by_value["lookup_value"].astype("string")
 
@@ -144,16 +148,17 @@ def expect_row_count_for_lookup_value_to_be_in_range(
         details = found_not_within_range.to_dict(orient='records')
 
     expectation_response = ExpectationResponse(
-        expectation_input=locals(),
+        expectation_input=expectation_input,
         result = result,
         msg = msg,
-        details = details )
+        details = details,
+        sqlite_dataset = query_runner.inform_dataset_path() )
 
     return expectation_response
 
 def expect_field_values_to_be_within_set(
-        query_runner: QueryRunner, table_name: str, field:str, 
-        expected_values_set: set, fail_if_not_found_entire_expected_set: bool = False):
+        query_runner: QueryRunner, table_name: str, field_name:str, 
+        expected_values_set: set, fail_if_not_found_entire_expected_set: bool = False, **kwargs):
     """Receives a table name, a field and a set expected values and 
     checks if values found for that field are within the expected set
     It returns True if all are in the expected set and False if at 
@@ -165,8 +170,9 @@ def expect_field_values_to_be_within_set(
     also return False in cases where a value of the expected set was not 
     present in the table.    
     """ 
-            
-    sql_query =f"SELECT {field} FROM {table_name} GROUP BY 1;"
+    expectation_input=locals()
+
+    sql_query =f"SELECT {field_name} FROM {table_name} GROUP BY 1;"
     found_values_set = query_runner.run_query(sql_query,return_only_first_col_as_set=True)
     
     if fail_if_not_found_entire_expected_set:
@@ -178,16 +184,17 @@ def expect_field_values_to_be_within_set(
         msg = "Success: data quality as expected"
         details = None
     else:
-        msg = f"Fail: values for field '{field}' on table '{table_name}' do not fit expected set criteria, see details"
+        msg = f"Fail: values for field '{field_name}' on table '{table_name}' do not fit expected set criteria, see details"
         details = {"table":table_name, 
                     "expected_values":expected_values_set, 
                     "found_values":found_values_set}
 
     expectation_response = ExpectationResponse(
-        expectation_input=locals(),
+        expectation_input=expectation_input,
         result = result,
         msg = msg,
-        details = details )
+        details = details,
+        sqlite_dataset = query_runner.inform_dataset_path() )
 
     return expectation_response
 
@@ -197,7 +204,8 @@ def expect_values_for_field_to_be_unique(query_runner: QueryRunner, table_name: 
     Returns True if in the table there are not 2 rows with identical values
     for the field (or set of fields) and False otherwise.    
     """ 
-    
+    expectation_input=locals()
+
     str_fields = ",".join(fields)        
     sql_query =f"SELECT {str_fields},COUNT(*) AS duplicates_count FROM {table_name} GROUP BY {str_fields} HAVING COUNT(*)>1;"        
     
@@ -213,10 +221,11 @@ def expect_values_for_field_to_be_unique(query_runner: QueryRunner, table_name: 
         details = {"duplicates_found": found_duplicity.to_dict(orient='records')}
     
     expectation_response = ExpectationResponse(
-        expectation_input=locals(),
+        expectation_input=expectation_input,
         result = result,
         msg = msg,
-        details = details )
+        details = details,
+        sqlite_dataset = query_runner.inform_dataset_path() )
 
     return expectation_response
 
@@ -227,7 +236,8 @@ def expect_geoshapes_to_be_valid(query_runner: QueryRunner, table_name: str,
     False if shapes are invalid and in the details returns ref for the shapes
     that were invalid (is_valid=0) or if shape parsing failed unknown(is_valid=-1).
     """ 
-    
+    expectation_input=locals()
+
     str_ref_fields = ",".join(ref_fields)     
     sql_query =f"""
         SELECT {str_ref_fields}, ST_IsValid(ST_GeomFromText({shape_field})) AS is_valid 
@@ -245,17 +255,18 @@ def expect_geoshapes_to_be_valid(query_runner: QueryRunner, table_name: str,
         details = {"invalid_shapes": invalid_shapes.to_dict(orient='records')}
     
     expectation_response = ExpectationResponse(
-        expectation_input=locals(),
+        expectation_input=expectation_input,
         result = result,
         msg = msg,
-        details = details )
+        details = details,
+        sqlite_dataset = query_runner.inform_dataset_path() )
 
     return expectation_response
 
 
 def expect_values_for_a_key_stored_in_json_are_within_a_set(
             query_runner: QueryRunner, table_name: str, field:str, 
-            json_key: str, expected_values_set: set, ref_fields:list):
+            json_key: str, expected_values_set: set, ref_fields:list, **kwargs):
     """Receives:
         - table name, 
         - a field (with a JSON text in it), 
@@ -269,7 +280,8 @@ def expect_values_for_a_key_stored_in_json_are_within_a_set(
     One-sided: will not check if all expected values are found, only if all 
     found values are within the expected
     """ 
-        
+    expectation_input=locals()
+
     str_ref_fields = ",".join(ref_fields)  
     str_expected_values_set = "','".join(expected_values_set)
 
@@ -292,24 +304,26 @@ def expect_values_for_a_key_stored_in_json_are_within_a_set(
         details = {"non_expected_values": non_expected_values.to_dict(orient='records') }
 
     expectation_response = ExpectationResponse(
-        expectation_input=locals(),
+        expectation_input=expectation_input,
         result = result,
         msg = msg,
-        details = details )
+        details = details,
+        sqlite_dataset = query_runner.inform_dataset_path() )
 
     return expectation_response
 
 
 def expect_keys_in_json_field_to_be_in_set_of_options(
             query_runner: QueryRunner, table_name: str, 
-            field_name: str, expected_keys_set: set, ref_fields:list):
+            field_name: str, expected_keys_set: set, ref_fields:list, **kwargs):
     """Receives a table name, a field name (of a field that has a JSON text 
     stored in it) and a set of keys. It checks if the keys found in the JSON 
     are within the expected set of expected keys. 
     One sided: will not check if all expected keys are found, only if all 
     found are within the expected
     """ 
-    
+    expectation_input=locals()
+
     str_ref_fields = ",".join(ref_fields)  
     
     prep_key_set = [f"'$.{s}'" for s in expected_keys_set]
@@ -331,21 +345,23 @@ def expect_keys_in_json_field_to_be_in_set_of_options(
         details = {"records_with_non_expected_keys": non_expected_keys.to_dict(orient='records') }
 
     expectation_response = ExpectationResponse(
-        expectation_input=locals(),
+        expectation_input=expectation_input,
         result = result,
         msg = msg,
-        details = details )
+        details = details,
+        sqlite_dataset = query_runner.inform_dataset_path() )
 
     return expectation_response
 
 
 def expect_values_in_field_to_be_within_range(
             query_runner: QueryRunner, table_name: str, field_name: str, 
-            min_expected_value: int, max_expected_value: int, ref_fields:list):
+            min_expected_value: int, max_expected_value: int, ref_fields:list, **kwargs):
     """Receives a table name, a field name checks the values found in the field
     are within the expected range
     """ 
-    
+    expectation_input=locals()
+
     str_ref_fields = ",".join(ref_fields)
 
     sql_query=f"""SELECT {str_ref_fields},{field_name} 
@@ -363,16 +379,17 @@ def expect_values_in_field_to_be_within_range(
         details = {"records_with_value_out_of_range": records_with_value_out_of_range.to_dict(orient='records') }
 
     expectation_response = ExpectationResponse(
-        expectation_input=locals(),
+        expectation_input=expectation_input,
         result = result,
         msg = msg,
-        details = details )
+        details = details,
+        sqlite_dataset = query_runner.inform_dataset_path())
 
     return expectation_response
 
 def expect_custom_query_result_to_be_as_predicted(
             query_runner: QueryRunner, custom_query: str, 
-            expected_query_result: list):
+            expected_query_result: list, **kwargs):
     """Receives a custom sqlite/spatialite query as string and a expected
     result in the form of list of row dictionaires, for example, 3 rows would look like this:
 
@@ -382,9 +399,10 @@ def expect_custom_query_result_to_be_as_predicted(
     
     Returns True if the result for the query are as expected and False otherwise, with details.    
     """ 
-    
+    expectation_input=locals()
+
     query_result = query_runner.run_query(custom_query)
-   
+    
     result = (query_result.to_dict(orient='records') == expected_query_result)
     
     if result:
@@ -398,9 +416,10 @@ def expect_custom_query_result_to_be_as_predicted(
 
 
     expectation_response = ExpectationResponse(
-        expectation_input=locals(),
+        expectation_input=expectation_input,
         result = result,
         msg = msg,
-        details = details )
+        details = details,
+        sqlite_dataset = query_runner.inform_dataset_path() )
 
     return expectation_response

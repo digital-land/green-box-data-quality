@@ -510,9 +510,6 @@ def test_check_json_keys_are_within_Expected_keys_set_False():
     assert response.msg == "Fail: found non-expected json keys in the field 'json' on table 'entity', see details"
     # because in this case the details will bring ~450 rows we decided not to assert details content
 
-
-#########################################################
-
 def test_check_value_for_field_is_within_expected_range_True():   
     "Test with field that have values inside the range"
     table_name = "entity"

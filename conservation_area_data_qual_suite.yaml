@@ -1,19 +1,21 @@
+collection_name: conservation-area
+
 table_checks:
-  - tb_name: "column_field"
-    tb_expected_min_row_count: 300
-    tb_expected_max_row_count: 600
+  - tb_name: column_field
+    min_expected_row_count: 300
+    max_expected_row_count: 600
   - tb_name: "dataset_resource"
-    tb_expected_min_row_count: 90
-    tb_expected_max_row_count: 200
+    min_expected_row_count: 90
+    max_expected_row_count: 200
   - tb_name: "entity"
-    tb_expected_min_row_count: 8500
-    tb_expected_max_row_count: 12000
+    min_expected_row_count: 8500
+    max_expected_row_count: 12000
   - tb_name: "fact"
-    tb_expected_min_row_count: 80000
-    tb_expected_max_row_count: 85000
+    min_expected_row_count: 80000
+    max_expected_row_count: 85000
   - tb_name: "fact_resource"
-    tb_expected_min_row_count: 175000
-    tb_expected_max_row_count: 185000
+    min_expected_row_count: 175000
+    max_expected_row_count: 185000
 
 field_existence_checks:
   - tb_name: "entity"    
@@ -87,15 +89,23 @@ field_level_checks:
           - reference
           - start-date
           - conservation-area
+
 # TODO implement custom queries in main     
 custom_queries:
-  - query: "SELECT dataset, entity, typology, reference FROM entity WHERE reference IN (1090769,1090770,1090771,1090772)"
-    expected_result: "[
-        {'dataset': 'listed-building-outline', 'entity': 42114488, 'typology': 'geography', 'reference': '1090769'}, 
-        {'dataset': 'listed-building-outline', 'entity': 42114489, 'typology': 'geography', 'reference': '1090770'}, 
-        {'dataset': 'listed-building-outline', 'entity': 42114490, 'typology': 'geography', 'reference': '1090771'}, 
-        {'dataset': 'listed-building-outline', 'entity': 42114491, 'typology': 'geography', 'reference': '1090772'}]"
+
+  - query: "SELECT dataset, entity, typology, reference FROM entity WHERE reference IN (6407,6345)"
+    expected_result: 
+      - dataset: conservation-area
+        entity: 303444
+        typology: geography
+        reference: "6407"
+      - dataset: conservation-area
+        entity: 303445
+        typology: geography
+        reference: "6345"    
+   
   - query: "SELECT entity FROM entity WHERE within(GeomFromText('POINT(-0.07850740376649457 51.51240013438393)'), GeomFromText(geometry));"
-    expected_result: "[{'entity':303443}]"
+    expected_result: 
+      - entity: 303443
 
 
