@@ -58,7 +58,7 @@ def expect_table_to_have_set_of_columns(
 
     sql_query =f"SELECT name FROM pragma_table_info('{table_name}');"
     found_columns_set = query_runner.run_query(sql_query,return_only_first_col_as_set=True)
-    
+
     if fail_if_found_more_than_expected:
         result = (expected_columns_set == found_columns_set)            
     else:

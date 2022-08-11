@@ -73,11 +73,12 @@ def run_dq_suite(results_path, sqlite_dataset_path, data_quality_suite_yaml):
 
     # FIELD EXISTENCE EXPECTATIONS:
     field_existence_checks = data_quality_suite_config.get('field_existence_checks', None)  
-
+    
+    
     if field_existence_checks:
 
         for item in field_existence_checks:
-
+            
             expected_columns_set = set(item["tb_expected_columns"])
             response = expect_table_to_have_set_of_columns(
                                             query_runner=query_runner, 
@@ -86,6 +87,7 @@ def run_dq_suite(results_path, sqlite_dataset_path, data_quality_suite_yaml):
                                             fail_if_found_more_than_expected= False,
                                             data_quality_execution_time=data_quality_execution_time ,
                                             expectation_severity = item["expectation_severity"])            
+
             response.save_to_file(results_path)
             response.act_on_failure()
 

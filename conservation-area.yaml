@@ -1,7 +1,7 @@
 collection_name: conservation-area
 
 table_checks:
-  expectation_severity: LogWarning
+  expectation_severity: RaiseError
   tables: 
   - tb_name: column_field    
     min_expected_row_count: 300
@@ -22,7 +22,7 @@ table_checks:
 field_existence_checks:
   - tb_name: entity
     expectation_severity: RaiseError    
-    tb_expected_columns:
+    tb_expected_columns:      
       - dataset 
       - end_date 
       - entity 
@@ -43,13 +43,13 @@ field_level_checks:
     field_name: entity
     expectations:
       - name: expect_values_for_field_to_be_unique
-        expectation_severity: LogWarning
+        expectation_severity: RaiseError
         fields:
           - entity
       - name: expect_values_in_field_to_be_within_range
         min_expected_value: 44000000
         max_expected_value: 44999999
-        expectation_severity: RaiseError
+        expectation_severity: LogWarning
         ref_fields:
           - entity
 
@@ -66,7 +66,7 @@ field_level_checks:
     field_name: organisation_entity
     expectations:
       - name: expect_row_count_for_lookup_value_to_be_in_range
-        expectation_severity: LogWarning
+        expectation_severity: RaiseError
         count_ranges_per_value:
           - lookup_value: 16 
             min_row_count: 7000
@@ -79,7 +79,7 @@ field_level_checks:
     field_name: json 
     expectations: 
       - name: expect_keys_in_json_field_to_be_in_set_of_options
-        expectation_severity: LogWarning
+        expectation_severity: RaiseError
         ref_fields: 
             - entity
         expected_keys_set: 
@@ -100,7 +100,7 @@ field_level_checks:
  
 custom_queries:
   - query: "SELECT dataset, entity, typology, reference FROM entity WHERE reference IN (6407,6345)"
-    expectation_severity: LogWarning
+    expectation_severity: RaiseError
     expected_result: 
       - dataset: conservation-area        
         entity: 303444
@@ -112,7 +112,7 @@ custom_queries:
         reference: "6345"    
    
   - query: "SELECT entity FROM entity WHERE within(GeomFromText('POINT(-0.07850740376649457 51.51240013438393)'), GeomFromText(geometry));"
-    expectation_severity: LogWarning
+    expectation_severity: RaiseError
     expected_result: 
       - entity: 303443
 
