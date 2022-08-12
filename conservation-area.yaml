@@ -73,7 +73,7 @@ expectations:
       - entity
 
   - expectation_name: expect_values_in_field_to_be_within_range
-    expectation_severity: LogWarning
+    expectation_severity: RaiseError
     min_expected_value: 44000000
     max_expected_value: 44999999
     table_name: entity
@@ -82,7 +82,7 @@ expectations:
       - entity
 
   - expectation_name: expect_geoshapes_to_be_valid
-    expectation_severity: LogWarning
+    expectation_severity: RaiseError
     table_name: entity
     field_name: geometry  
     ref_fields: 
@@ -124,6 +124,12 @@ expectations:
       - conservation-area
 
   - expectation_name: expect_custom_query_result_to_be_as_predicted
+    expectation_severity: RaiseError
+    custom_query: "SELECT entity FROM entity WHERE within(GeomFromText('POINT(-0.07850740376649457 51.51240013438393)'), GeomFromText(geometry));"
+    expected_query_result: 
+      - entity: 303443
+
+  - expectation_name: expect_custom_query_result_to_be_as_predicted
     custom_query: "SELECT dataset, entity, typology, reference FROM entity WHERE reference IN (6407,6345)"
     expectation_severity: RaiseError
     expected_query_result: 
@@ -135,9 +141,3 @@ expectations:
         entity: 303445
         typology: geography
         reference: "6345"    
-
-  - expectation_name: expect_custom_query_result_to_be_as_predicted
-    expected_query_result: RaiseError
-    custom_query: "SELECT entity FROM entity WHERE within(GeomFromText('POINT(-0.07850740376649457 51.51240013438393)'), GeomFromText(geometry));"
-    expected_result: 
-      - entity: 303443  

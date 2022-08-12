@@ -113,12 +113,11 @@ class ExpectationResponse:
     def act_on_failure(self):
         "Raises error if severity is RaiseError or shows warning if severity is LogWarning"
 
-        warnings.warn(self.msg)
+        result = 0
 
-        if (
-            self.result == False
-            and self.expectation_input["expectation_severity"] == "RaiseError"
-        ):
-            return 1
-        else:
-            return 0
+        if self.result == False:
+            warnings.warn(self.msg)
+            if self.expectation_input["expectation_severity"] == "RaiseError":
+                result = 1
+
+        return result
